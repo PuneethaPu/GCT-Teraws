@@ -44,6 +44,29 @@ terraform plan
 terraform apply
 ```
 
+## GitHub Actions CI/CD
+
+The `.github/workflows/terraform.yml` workflow:
+
+- Runs `terraform fmt`, `terraform init -backend=false`, and `terraform validate`
+  on pull requests and relevant pushes.
+- Generates a plan for pull requests and manual workflow runs.
+- Uses AWS OIDC credentials for planning and applies only through a manually
+  triggered run with GitHub's `production` environment approval.
+
+Before using AWS operations in the workflow, configure an IAM role for GitHub
+OIDC and add these repository settings:
+
+- **Secret:** `AWS_ROLE_ARN` with the role ARN to assume.
+- **Variable:** `AWS_REGION` with the target AWS region (defaults to
+  `us-east-1`).
+- **Environment:** `production`, with required reviewers if approvals are
+  desired.
+
+The workflow does not use the repository's local `.tfvars` file. Configure
+enabled resources and non-secret values through variables in Terraform or
+through a repository environment before allowing apply runs.
+
 `terraform plan` is a review step and does not create resources. Disable a
 service by setting its `enable_*` variable to `false`; review the resulting plan
 carefully because it will destroy the corresponding managed resources. Back up
